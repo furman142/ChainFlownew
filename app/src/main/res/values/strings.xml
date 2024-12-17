@@ -1,0 +1,49 @@
+<resources>
+    <string name="app_name">Chain_Flow</string>
+    <string name="welcome">Welcome</string>
+    <string name="sign_up">Sign up</string>
+    <string name="email">Email:</string>
+    <string name="sign_up_btn">Sign up</string>
+    <string name="username">Username:</string>
+    <string name="password">Password:</string>
+    <string name="email_login">Email:</string>
+    <string name="login">Login</string>
+    <string name="home_message">Explore the World of Digital Assets!</string>
+    <string name="coin">Coin</string>
+    <string name="markets">Markets</string>
+    <string name="logo">Logo</string>
+    <string name="trade">Trade</string>
+    <string name="portfolio">Portfolio</string>
+    <string name="buy">Buy</string>
+    <string name="sell">Sell</string>
+    <string name="convert">Convert</string>
+    <string name="back_to_home">Back to home</string>
+    <string name="return_home">Return Home</string>
+    <string name="back">back\n</string>
+
+    <string-array name="crypto_names">
+        <item>Bitcoin</item>
+        <item>Ethereum</item>
+        <item>BNB</item>
+        <item>Cardano</item>
+        <item>Dogecoin</item>
+        <item>XRP</item>
+        <item>Solana</item>
+        <item>Polkadot</item>
+        <item>Shiba Inu</item>
+        <item>Pepe</item>
+    </string-array>
+
+    <string-array name="crypto_values">
+        <item>$95,545.58</item>
+        <item>$3,640.19</item>
+        <item>$661.43</item>
+        <item>$1.00</item>
+        <item>$0.40235</item>
+        <item>$1.46</item>
+        <item>$236.96</item>
+        <item>$5.25</item>
+        <item>$0.00001135</item>
+        <item>$0.00001966</item>
+    </string-array>
+</resources>

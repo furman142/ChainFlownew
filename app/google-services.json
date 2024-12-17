@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "949078823671",
+    "project_id": "chainflow-b1c75",
+    "storage_bucket": "chainflow-b1c75.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:949078823671:android:2c82975d201d437e70f9f2",
+        "android_client_info": {
+          "package_name": "com.example.chain_flow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmnSiQskKWM8CZGmxpgrGZnDok6y17uW8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

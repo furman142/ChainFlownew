@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    
+    <item
+        android:id="@+id/menu_buy"
+        android:icon="@drawable/ic_buy"
+        android:title="Buy"
+        android:iconTint="#4CAF50"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/menu_sell"
+        android:icon="@drawable/ic_sell"
+        android:title="Sell"
+        android:iconTint="#F44336"
+        app:showAsAction="never" />
+    
+    <item
+        android:id="@+id/menu_convert"
+        android:icon="@drawable/ic_convert"
+        android:title="Convert"
+        android:iconTint="#2196F3"
+        app:showAsAction="never" />
+</menu> 
