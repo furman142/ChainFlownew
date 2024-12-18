@@ -1,4 +1,3 @@
-
 import PortfolioFragment
 import TradeFragment
 import android.os.Bundle
@@ -6,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -15,6 +15,13 @@ import com.example.chain_flow.R
 import com.example.chain_flow.adapters.CryptocardAdapter
 import com.example.chain_flow.fragments.MarketFragment
 import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.bumptech.glide.Glide
+import android.widget.Toast
+import com.example.chain_flow.api.RetrofitClient
 
 class HomeFragment : Fragment() {
 
@@ -73,38 +80,57 @@ class HomeFragment : Fragment() {
 
     private fun setupRecyclerView() {
         recyclerView.layoutManager = LinearLayoutManager(context)
-
-        cryptoList.apply {
-            add(CryptoCoin("Bitcoin", "95000", R.drawable.bitcoin, false, "Bitcoin is the first decentralized cryptocurrency, enabling peer-to-peer transactions on a global scale."))
-            add(CryptoCoin("Ethereum", "3000", R.drawable.eth, false, "Ethereum is a decentralized platform that supports smart contracts and decentralized applications."))
-            add(CryptoCoin("BNB", "45000", R.drawable.bnb, false, "BNB is the native cryptocurrency of the Binance exchange, used for trading fees and other utilities."))
-            add(CryptoCoin("Solana", "180", R.drawable.sol, false, "Solana is a high-performance blockchain supporting decentralized apps and crypto projects."))
-            add(CryptoCoin("Cardano", "0.65", R.drawable.ada, false, "Cardano is a blockchain platform for changemakers, innovators, and visionaries."))
-            add(CryptoCoin("XRP", "0.75", R.drawable.xrp, false, "XRP is a digital payment protocol designed to enable fast and affordable cross-border transactions."))
-            add(CryptoCoin("Polkadot", "8.50", R.drawable.dot, false, "Polkadot enables blockchain interoperability, allowing diverse blockchains to transfer messages and value."))
-            add(CryptoCoin("Dogecoin", "0.15", R.drawable.doge, false, "Dogecoin started as a joke cryptocurrency but has grown to have a loyal community and real-world use cases."))
-            add(CryptoCoin("Avalanche", "40.25", R.drawable.avax, false, "Avalanche is a decentralized platform for launching highly scalable DeFi applications."))
-            add(CryptoCoin("Chainlink", "18.90", R.drawable.link, false, "Chainlink is a decentralized oracle network providing tamper-proof data for smart contracts."))
-            add(CryptoCoin("Polygon", "0.95", R.drawable.matic, false, "Polygon is a Layer 2 scaling solution that aims to improve transaction speed and reduce costs on Ethereum."))
-            add(CryptoCoin("Uniswap", "7.80", R.drawable.uni, false, "Uniswap is a decentralized exchange protocol built on Ethereum for swapping ERC-20 tokens."))
-            add(CryptoCoin("Litecoin", "80.50", R.drawable.ltc, false, "Litecoin is a peer-to-peer cryptocurrency designed for fast and inexpensive transactions."))
-        }
-
-
-        // Set up the adapter
         adapter = CryptocardAdapter(
             cryptoList,
             requireContext(),
             onWatchlistChanged = { position, isChecked ->
-                // Update watchlist status
                 cryptoList[position].watchlist = isChecked
             },
             onCardClicked = { cryptoCoin ->
-                // Show detailed view
                 showCardDetails(cryptoCoin)
             }
         )
         recyclerView.adapter = adapter
+        
+        // Load data from API
+        loadCryptoData()
+    }
+
+    private fun loadCryptoData() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitClient.api.getLatestListings()
+                if (response.isSuccessful) {
+                    val cryptoDataList = response.body()?.data ?: emptyList()
+                    
+                    val cryptoCoins = cryptoDataList.map { data ->
+                        CryptoCoin(
+                            cryptoName = data.name,
+                            cryptoValue = "$${String.format("%.2f", data.quote.USD.price)}",
+                            imageUrl = "https://s2.coinmarketcap.com/static/img/coins/64x64/${data.id}.png",
+                            watchlist = false,
+                            description = "Digital currency ${data.name} (${data.symbol})"
+                        )
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        cryptoList.clear()
+                        cryptoList.addAll(cryptoCoins)
+                        adapter.notifyDataSetChanged()
+                        println("Loaded ${cryptoList.size} coins")
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Error: ${response.errorBody()?.string()}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                    e.printStackTrace()
+                }
+            }
+        }
     }
 
     private fun setupTabListeners() {
@@ -151,14 +177,22 @@ class HomeFragment : Fragment() {
     }
 
     private fun showCardDetails(cryptoCoin: CryptoCoin) {
-        // Hide RecyclerView and show the detailed view
         recyclerView.visibility = View.GONE
         cardDetailsLayout.visibility = View.VISIBLE
 
-        // Populate the detailed view with crypto data
+        // Load detailed image
+        val detailImage = view?.findViewById<ImageView>(R.id.detail_crypto_image)
+        detailImage?.let {
+            Glide.with(requireContext())
+                .load(cryptoCoin.imageUrl)
+                .placeholder(R.drawable.bitcoin)
+                .error(R.drawable.bitcoin)
+                .into(it)
+        }
+
         cryptoNameTextView.text = cryptoCoin.cryptoName
         cryptoPriceTextView.text = "$${cryptoCoin.cryptoValue}"
-        cryptoDescriptionTextView.text = cryptoCoin.description // Add description logic here
+        cryptoDescriptionTextView.text = cryptoCoin.description
     }
 
     private fun showRecyclerView() {

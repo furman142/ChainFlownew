@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.example.chain_flow.R
 import com.example.chain_flow.models.CryptoCoin
 
@@ -17,13 +18,33 @@ class CryptocardAdapter(
     private val onCardClicked: (CryptoCoin) -> Unit
 ) : RecyclerView.Adapter<CryptocardAdapter.CryptoViewHolder>() {
 
-    private var showWatchlistOnly = false
-
-    class CryptoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class CryptoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cryptoName: TextView = itemView.findViewById(R.id.crypto_name)
         val cryptoValue: TextView = itemView.findViewById(R.id.crypto_price)
         val watchlistButton: ImageView = itemView.findViewById(R.id.watchlist_button)
         val cryptoIcon: ImageView = itemView.findViewById(R.id.crypto_icon)
+
+        fun bind(crypto: CryptoCoin, position: Int) {
+            Glide.with(context)
+                .load(crypto.imageUrl)
+                .placeholder(R.drawable.bitcoin)
+                .error(R.drawable.bitcoin)
+                .into(cryptoIcon)
+
+            cryptoName.text = crypto.cryptoName
+            cryptoValue.text = crypto.cryptoValue
+            watchlistButton.isSelected = crypto.watchlist
+            
+            watchlistButton.setOnClickListener {
+                val newState = !crypto.watchlist
+                onWatchlistChanged(position, newState)
+                watchlistButton.isSelected = newState
+            }
+
+            itemView.setOnClickListener {
+                onCardClicked(crypto)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CryptoViewHolder {
@@ -32,22 +53,7 @@ class CryptocardAdapter(
     }
 
     override fun onBindViewHolder(holder: CryptoViewHolder, position: Int) {
-        val crypto = cryptoList[position]
-
-        holder.cryptoName.text = crypto.cryptoName
-        holder.cryptoValue.text = crypto.cryptoValue
-        holder.cryptoIcon.setImageResource(crypto.imageUrl)
-        
-        holder.watchlistButton.isSelected = crypto.watchlist
-        holder.watchlistButton.setOnClickListener {
-            val newState = !crypto.watchlist
-            onWatchlistChanged(position, newState)
-            holder.watchlistButton.isSelected = newState
-        }
-
-        holder.itemView.setOnClickListener {
-            onCardClicked(crypto)
-        }
+        holder.bind(cryptoList[position], position)
     }
 
     override fun getItemCount(): Int {
@@ -57,6 +63,8 @@ class CryptocardAdapter(
             cryptoList.size
         }
     }
+
+    private var showWatchlistOnly = false
 
     fun showWatchlistOnly(show: Boolean) {
         showWatchlistOnly = show

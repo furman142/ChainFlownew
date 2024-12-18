@@ -94,9 +94,9 @@
             android:id="@+id/recyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="vertical"
             android:clipToPadding="false"
-            android:padding="8dp"/>
+            android:padding="8dp"
+            android:visibility="visible"/>
 
         <!-- Detailed View -->
         <LinearLayout
@@ -141,6 +141,13 @@
                 android:textSize="16sp"
                 android:textColor="@color/gray"
                 android:layout_marginTop="16dp"/>
+
+            <ImageView
+                android:id="@+id/detail_crypto_image"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="16dp"
+                android:contentDescription="Cryptocurrency icon"/>
         </LinearLayout>
     </FrameLayout>
 
