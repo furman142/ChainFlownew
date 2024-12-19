@@ -25,6 +25,7 @@ espresso-core = "3.5.1"
 room-runtime = "2.6.1"
 appcompat-version = "1.7.0"
 activity = "1.9.3"
+swiperefreshlayout = "1.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
@@ -53,6 +54,7 @@ androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-co
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat-version" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

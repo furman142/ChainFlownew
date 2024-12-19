@@ -20,6 +20,8 @@
     <string name="back_to_home">Back to home</string>
     <string name="return_home">Return Home</string>
     <string name="back">back\n</string>
+    <string name="buytext">Buy</string>
+    <string name="selltext">Sell</string>
 
     <string-array name="crypto_names">
         <item>Bitcoin</item>

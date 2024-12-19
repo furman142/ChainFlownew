@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.logging.interceptor)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
 
 
     testImplementation(libs.junit)

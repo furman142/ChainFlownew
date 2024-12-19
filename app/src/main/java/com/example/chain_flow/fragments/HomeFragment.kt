@@ -1,5 +1,5 @@
-import PortfolioFragment
-import TradeFragment
+package com.example.chain_flow.fragments
+
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +14,8 @@ import com.example.chain_flow.models.CryptoCoin
 import com.example.chain_flow.R
 import com.example.chain_flow.adapters.CryptocardAdapter
 import com.example.chain_flow.fragments.MarketFragment
+import com.example.chain_flow.fragments.TradeFragment
+import com.example.chain_flow.fragments.PortfolioFragment
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -117,7 +119,6 @@ class HomeFragment : Fragment() {
                         cryptoList.clear()
                         cryptoList.addAll(cryptoCoins)
                         adapter.notifyDataSetChanged()
-                        println("Loaded ${cryptoList.size} coins")
                     }
                 } else {
                     withContext(Dispatchers.Main) {
@@ -152,9 +153,9 @@ class HomeFragment : Fragment() {
 
     private fun setupBottomNavigation() {
         marketsButton.setOnClickListener {
-            val marketFragment= MarketFragment()
+            val marketFragment = MarketFragment()
             parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container,marketFragment)
+                .replace(R.id.fragment_container, marketFragment)
                 .addToBackStack(null)
                 .commit()
         }
@@ -168,9 +169,9 @@ class HomeFragment : Fragment() {
         }
 
         portfolioButton.setOnClickListener {
-            val portfolioFragment=PortfolioFragment()
+            val portfolioFragment = PortfolioFragment()
             parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container,portfolioFragment)
+                .replace(R.id.fragment_container, portfolioFragment)
                 .addToBackStack(null)
                 .commit()
         }
