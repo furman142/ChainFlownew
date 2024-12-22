@@ -14,7 +14,6 @@ import com.example.chain_flow.models.CryptoCoin
 import com.example.chain_flow.R
 import com.example.chain_flow.adapters.CryptocardAdapter
 import com.example.chain_flow.fragments.MarketFragment
-import com.example.chain_flow.fragments.TradeFragment
 import com.example.chain_flow.fragments.PortfolioFragment
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +22,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.bumptech.glide.Glide
 import android.widget.Toast
+import com.example.chain_flow.ViewModels.CryptoViewModel
 import com.example.chain_flow.api.RetrofitClient
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 
 class HomeFragment : Fragment() {
 
@@ -31,12 +33,26 @@ class HomeFragment : Fragment() {
     private lateinit var adapter: CryptocardAdapter
     private val cryptoList = arrayListOf<CryptoCoin>()
 
+
+
+
+    //firedatabase
+
+
+
+
+
+
+
     // Detailed view elements
     private lateinit var cardDetailsLayout: View
     private lateinit var backButton: ImageButton
     private lateinit var cryptoNameTextView: TextView
     private lateinit var cryptoPriceTextView: TextView
     private lateinit var cryptoDescriptionTextView: TextView
+
+//    private val viewModel: CryptoViewModel by activityViewModels()
+
 
     // Tab and navigation buttons
     private lateinit var coinTab: MaterialButton
@@ -93,7 +109,7 @@ class HomeFragment : Fragment() {
             }
         )
         recyclerView.adapter = adapter
-        
+
         // Load data from API
         loadCryptoData()
     }
@@ -104,7 +120,7 @@ class HomeFragment : Fragment() {
                 val response = RetrofitClient.api.getLatestListings()
                 if (response.isSuccessful) {
                     val cryptoDataList = response.body()?.data ?: emptyList()
-                    
+
                     val cryptoCoins = cryptoDataList.map { data ->
                         CryptoCoin(
                             cryptoName = data.name,

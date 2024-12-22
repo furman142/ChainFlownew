@@ -1,55 +1,43 @@
 package com.example.chain_flow.adapters
 
 import android.content.Context
+import android.view.View
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
-import androidx.appcompat.app.AlertDialog
-import java.util.ArrayList
 
 class MultiSelectAdapter(
     private val context: Context,
     private val spinner: Spinner,
     private val items: Array<String>
 ) {
-    private val selectedItems = ArrayList<String>()
+    private var selectedItem: String? = null
 
     init {
-        spinner.setOnClickListener {
-            showMultiSelectDialog()
-        }
-    }
-
-    private fun showMultiSelectDialog() {
-        val checkedItems = BooleanArray(items.size) { selectedItems.contains(items[it]) }
-
-        AlertDialog.Builder(context)
-            .setTitle("Select Cryptocurrencies")
-            .setMultiChoiceItems(items, checkedItems) { _, index, isChecked ->
-                if (isChecked) {
-                    selectedItems.add(items[index])
-                } else {
-                    selectedItems.remove(items[index])
-                }
-            }
-            .setPositiveButton("OK") { _, _ ->
-                updateSpinnerText()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun updateSpinnerText() {
-        val text = if (selectedItems.isEmpty()) {
-            "Select cryptocurrencies"
-        } else {
-            selectedItems.joinToString(", ")
-        }
-        
-        // Create and set adapter with selected text
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, arrayOf(text))
+        // Create adapter with all cryptocurrency options
+        val adapter = ArrayAdapter(
+            context, 
+            android.R.layout.simple_spinner_item,
+            listOf("Select cryptocurrency") + items.toList()
+        )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
+
+        // Handle item selection
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (position > 0) { // Skip the hint item
+                    selectedItem = items[position - 1]
+                } else {
+                    selectedItem = null
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                selectedItem = null
+            }
+        }
     }
 
-    fun getSelectedItems(): List<String> = selectedItems
+    fun getSelectedItem(): String? = selectedItem
 }
