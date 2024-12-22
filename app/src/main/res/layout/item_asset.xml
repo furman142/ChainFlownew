@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- אייקון מטבע -->
+        <ImageView
+            android:id="@+id/crypto_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/bitcoin"
+            android:layout_marginEnd="12dp" />
+
+        <!-- פרטי הנכס -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_weight="1">
+
+            <!-- שם המטבע -->
+            <TextView
+                android:id="@+id/crypto_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Bitcoin"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+
+            <!-- כמות המטבע -->
+            <TextView
+                android:id="@+id/crypto_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0.12345678 BTC"
+                android:textSize="14sp"
+                android:textColor="@color/gray"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- שווי הנכס -->
+        <TextView
+            android:id="@+id/crypto_worth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="$5000"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/purple_500"
+            android:gravity="center_vertical" />
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

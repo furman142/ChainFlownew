@@ -8,7 +8,7 @@
     android:background="#F5F6FA"
     android:padding="16dp">
 
-    <!-- 
+    <!--
       מסך הבית
       מכיל את הרכיבים הבאים:
       - לוגו וכותרת
@@ -60,93 +60,83 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:layout_marginBottom="16dp">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/login_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/login"
-            app:cornerRadius="25dp"
-            android:textColor="#1E1F29"
-            android:textSize="16sp"
-            android:layout_marginEnd="8dp"
-            app:backgroundTint="#F3F3F3"
-            android:padding="12dp"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/signup_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/sign_up"
-            app:cornerRadius="25dp"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:layout_marginStart="8dp"
-            app:backgroundTint="#FFD700"
-            android:padding="12dp"/>
+        <!-- Add your login and sign-up buttons here -->
     </LinearLayout>
 
-    <!-- Watchlist and Coin Tabs -->
-    <com.google.android.material.card.MaterialCardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="15dp"
-        app:cardElevation="2dp"
-        android:layout_marginBottom="8dp"
-        app:cardBackgroundColor="#FFFFFF">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="start"
-            android:padding="8dp">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/coin_tab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/coin"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:cornerRadius="20dp"
-                android:textColor="#1E1F29"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_marginEnd="16dp"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/watchlist_tab"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Watchlist"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:cornerRadius="20dp"
-                android:textColor="#A4A4A4"
-                style="@style/Widget.MaterialComponents.Button.TextButton"/>
-        </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <!-- RecyclerView in Card -->
-    <androidx.cardview.widget.CardView
+    <!-- SwipeRefreshLayout wrapping the Tabs and RecyclerView -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        app:cardCornerRadius="15dp"
-        app:cardElevation="4dp"
-        android:layout_marginVertical="8dp"
-        app:cardBackgroundColor="#FFFFFF">
+        android:layout_weight="1">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerView"
+        <!-- Wrap multiple children in a container layout -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scrollbars="vertical"
-            android:clipToPadding="false"
-            android:padding="8dp"/>
-    </androidx.cardview.widget.CardView>
+            android:orientation="vertical">
+
+            <!-- Watchlist and Coin Tabs -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="15dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="8dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="start"
+                    android:padding="8dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/coin_tab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/coin"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="20dp"
+                        android:textColor="#1E1F29"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_marginEnd="16dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/watchlist_tab"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Watchlist"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="20dp"
+                        android:textColor="#A4A4A4"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- RecyclerView in Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                app:cardCornerRadius="15dp"
+                app:cardElevation="4dp"
+                android:layout_marginVertical="8dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scrollbars="vertical"
+                    android:clipToPadding="false"
+                    android:padding="8dp"/>
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <!-- Bottom Navigation Section -->
     <com.google.android.material.card.MaterialCardView

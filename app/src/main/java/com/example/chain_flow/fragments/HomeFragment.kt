@@ -4,46 +4,28 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.fragment.app.Fragment
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.chain_flow.models.CryptoCoin
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.chain_flow.R
 import com.example.chain_flow.adapters.CryptocardAdapter
-import com.example.chain_flow.fragments.MarketFragment
-import com.example.chain_flow.fragments.TradeFragment
-import com.example.chain_flow.fragments.PortfolioFragment
+import com.example.chain_flow.api.RetrofitClient
+import com.example.chain_flow.models.CryptoCoin
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.bumptech.glide.Glide
-import android.widget.Toast
-import com.example.chain_flow.api.RetrofitClient
 
-class HomeFragment : Fragment() {
-
+class HomeFragment : BaseFragment() {
     private lateinit var recyclerView: RecyclerView
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var adapter: CryptocardAdapter
-    private val cryptoList = arrayListOf<CryptoCoin>()
-
-    // Detailed view elements
-    private lateinit var cardDetailsLayout: View
-    private lateinit var backButton: ImageButton
-    private lateinit var cryptoNameTextView: TextView
-    private lateinit var cryptoPriceTextView: TextView
-    private lateinit var cryptoDescriptionTextView: TextView
-
-    // Tab and navigation buttons
+    private val cryptoList = mutableListOf<CryptoCoin>()
     private lateinit var coinTab: MaterialButton
     private lateinit var watchlistTab: MaterialButton
-    private lateinit var marketsButton: MaterialButton
-    private lateinit var tradeButton: MaterialButton
-    private lateinit var portfolioButton: MaterialButton
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,154 +33,106 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
-
+        
         initializeViews(view)
         setupRecyclerView()
         setupTabListeners()
-        setupBottomNavigation()
-
+        loadCryptoData()
+        
         return view
     }
 
     private fun initializeViews(view: View) {
         recyclerView = view.findViewById(R.id.recyclerView)
-        cardDetailsLayout = view.findViewById(R.id.card_details_layout)
-        backButton = view.findViewById(R.id.back_button)
-        cryptoNameTextView = view.findViewById(R.id.crypto_name)
-        cryptoPriceTextView = view.findViewById(R.id.crypto_price)
-        cryptoDescriptionTextView = view.findViewById(R.id.crypto_description)
-
+        swipeRefreshLayout = view.findViewById(R.id.swipe_refresh_layout)
         coinTab = view.findViewById(R.id.coin_tab)
         watchlistTab = view.findViewById(R.id.watchlist_tab)
-        marketsButton = view.findViewById(R.id.markets_button)
-        tradeButton = view.findViewById(R.id.trade_button)
-        portfolioButton = view.findViewById(R.id.portfolio_button)
+        
+        swipeRefreshLayout.setOnRefreshListener {
+            loadCryptoData()
+        }
+    }
 
-        // Handle back button click
-        backButton.setOnClickListener {
-            showRecyclerView()
+    private fun setupTabListeners() {
+        coinTab.setOnClickListener {
+            coinTab.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+            watchlistTab.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+            adapter.showWatchlistOnly(false)
+        }
+
+        watchlistTab.setOnClickListener {
+            watchlistTab.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
+            coinTab.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
+            adapter.showWatchlistOnly(true)
         }
     }
 
     private fun setupRecyclerView() {
-        recyclerView.layoutManager = LinearLayoutManager(context)
         adapter = CryptocardAdapter(
             cryptoList,
             requireContext(),
-            onWatchlistChanged = { position, isChecked ->
-                cryptoList[position].watchlist = isChecked
+            onWatchlistChanged = { position, isWatchlisted ->
+                cryptoList[position].watchlist = isWatchlisted
+                // If we're in watchlist view, refresh the list
+                if (watchlistTab.currentTextColor == ContextCompat.getColor(requireContext(), R.color.black)) {
+                    adapter.notifyDataSetChanged()
+                }
             },
-            onCardClicked = { cryptoCoin ->
-                showCardDetails(cryptoCoin)
+            onCardClicked = { crypto ->
+                showBuyFragment(crypto)
             }
         )
-        recyclerView.adapter = adapter
         
-        // Load data from API
-        loadCryptoData()
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView.adapter = adapter
     }
 
     private fun loadCryptoData() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val response = RetrofitClient.api.getLatestListings()
-                if (response.isSuccessful) {
-                    val cryptoDataList = response.body()?.data ?: emptyList()
-                    
-                    val cryptoCoins = cryptoDataList.map { data ->
-                        CryptoCoin(
-                            cryptoName = data.name,
-                            cryptoValue = "$${String.format("%.2f", data.quote.USD.price)}",
-                            imageUrl = "https://s2.coinmarketcap.com/static/img/coins/64x64/${data.id}.png",
-                            watchlist = false,
-                            description = "Digital currency ${data.name} (${data.symbol})"
-                        )
-                    }
-
-                    withContext(Dispatchers.Main) {
+                
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val cryptoDataList = response.body()?.data ?: emptyList()
+                        
                         cryptoList.clear()
-                        cryptoList.addAll(cryptoCoins)
+                        cryptoList.addAll(cryptoDataList.map { data ->
+                            CryptoCoin(
+                                cryptoName = data.name,
+                                cryptoValue = "$${String.format("%.2f", data.quote.USD.price)}",
+                                imageUrl = "https://s2.coinmarketcap.com/static/img/coins/64x64/${data.id}.png",
+                                watchlist = false,
+                                description = "${data.name} (${data.symbol})",
+                                rawPrice = data.quote.USD.price
+                            )
+                        })
                         adapter.notifyDataSetChanged()
                     }
-                } else {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(context, "Error: ${response.errorBody()?.string()}", Toast.LENGTH_LONG).show()
-                    }
+                    swipeRefreshLayout.isRefreshing = false
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                    e.printStackTrace()
+                    swipeRefreshLayout.isRefreshing = false
                 }
             }
         }
     }
 
-    private fun setupTabListeners() {
-        coinTab.setOnClickListener {
-            updateTabSelection(true)
-            adapter.showWatchlistOnly(false)
+    private fun showBuyFragment(crypto: CryptoCoin) {
+        val buyFragment = BuyFragment().apply {
+            arguments = Bundle().apply {
+                putString("cryptoName", crypto.cryptoName)
+                putString("cryptoValue", crypto.cryptoValue)
+                putString("imageUrl", crypto.imageUrl)
+                putDouble("rawPrice", crypto.rawPrice)
+            }
         }
-
-        watchlistTab.setOnClickListener {
-            updateTabSelection(false)
-            adapter.showWatchlistOnly(true)
-        }
-    }
-
-    private fun updateTabSelection(coinTabSelected: Boolean) {
-        coinTab.setTextColor(resources.getColor(if (coinTabSelected) R.color.black else R.color.black, null))
-        watchlistTab.setTextColor(resources.getColor(if (coinTabSelected) R.color.black else R.color.black, null))
-    }
-
-    private fun setupBottomNavigation() {
-        marketsButton.setOnClickListener {
-            val marketFragment = MarketFragment()
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, marketFragment)
-                .addToBackStack(null)
-                .commit()
-        }
-
-        tradeButton.setOnClickListener {
-            val tradeFragment = TradeFragment()
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, tradeFragment)
-                .addToBackStack(null)
-                .commit()
-        }
-
-        portfolioButton.setOnClickListener {
-            val portfolioFragment = PortfolioFragment()
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, portfolioFragment)
-                .addToBackStack(null)
-                .commit()
-        }
-    }
-
-    private fun showCardDetails(cryptoCoin: CryptoCoin) {
-        recyclerView.visibility = View.GONE
-        cardDetailsLayout.visibility = View.VISIBLE
-
-        // Load detailed image
-        val detailImage = view?.findViewById<ImageView>(R.id.detail_crypto_image)
-        detailImage?.let {
-            Glide.with(requireContext())
-                .load(cryptoCoin.imageUrl)
-                .placeholder(R.drawable.bitcoin)
-                .error(R.drawable.bitcoin)
-                .into(it)
-        }
-
-        cryptoNameTextView.text = cryptoCoin.cryptoName
-        cryptoPriceTextView.text = "$${cryptoCoin.cryptoValue}"
-        cryptoDescriptionTextView.text = cryptoCoin.description
-    }
-
-    private fun showRecyclerView() {
-        // Hide the detailed view and show the RecyclerView
-        cardDetailsLayout.visibility = View.GONE
-        recyclerView.visibility = View.VISIBLE
+        
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, buyFragment)
+            .addToBackStack(null)
+            .commit()
     }
 }

@@ -9,12 +9,11 @@
 
     <!-- Market Header -->
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Market"
+        android:text="Markets"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@color/black"
         android:layout_marginBottom="16dp"/>
 
     <!-- Search Card -->
@@ -109,4 +108,8 @@
             android:padding="8dp"/>
 
     </androidx.cardview.widget.CardView>
+
+    <!-- Include bottom navigation -->
+    <include layout="@layout/bottom_navigation"/>
+
 </LinearLayout> 
