@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="15dp"
+    app:cardElevation="4dp"
+    android:layout_margin="16dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/home_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Home"
+            android:textSize="14sp"
+            app:cornerRadius="20dp"
+            android:textColor="#A4A4A4"
+            app:backgroundTint="#F3F3F3"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_marginEnd="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/trade_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Trade"
+            android:textSize="14sp"
+            app:cornerRadius="20dp"
+            android:textColor="#A4A4A4"
+            app:backgroundTint="#F3F3F3"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_marginEnd="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/portfolio_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Portfolio"
+            android:textSize="14sp"
+            app:cornerRadius="20dp"
+            android:textColor="#A4A4A4"
+            app:backgroundTint="#F3F3F3"
+            style="@style/Widget.MaterialComponents.Button"/>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView> 
