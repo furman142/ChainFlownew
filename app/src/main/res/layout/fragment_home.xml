@@ -90,20 +90,13 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipe_refresh_layout"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:padding="8dp"
-                android:visibility="visible"/>
-
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="8dp"
+            android:visibility="visible"/>
 
         <!-- Detailed View -->
         <LinearLayout
@@ -112,95 +105,49 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:visibility="gone"
-            android:background="#FFFFFF"
+            android:background="@color/white"
             android:padding="16dp">
 
             <ImageButton
                 android:id="@+id/back_button"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:src="@drawable/ic_back"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:layout_marginBottom="24dp"/>
+                android:contentDescription="Back"
+                android:padding="12dp"/>
 
-
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/crypto_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginTop="16dp"/>
 
-
-
-
-            </LinearLayout>
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/crypto_price"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="#F5F6FA"
-                android:padding="16dp">
+                android:textSize="20sp"
+                android:textColor="@color/gray"
+                android:layout_marginTop="8dp"/>
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:id="@+id/detail_crypto_image"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_marginEnd="16dp"/>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/crypto_name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="20sp"
-                            android:textColor="#1E1F29"/>
-
-                        <TextView
-                            android:id="@+id/crypto_price"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="16sp"
-                            android:textColor="#1E1F29"/>
-
-                        <TextView
-                            android:id="@+id/crypto_symbol"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="14sp"
-                            android:textColor="#8B8D97"/>
-                    </LinearLayout>
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/crypto_description"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:textSize="14sp"
-                    android:textColor="#8B8D97"/>
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/buy_button"
+            <TextView
+                android:id="@+id/crypto_description"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="BUY"
+                android:layout_height="wrap_content"
                 android:textSize="16sp"
-                android:layout_marginTop="24dp"
-                android:backgroundTint="#D4F052"
-                android:textColor="#1E1F29"/>
+                android:textColor="@color/gray"
+                android:layout_marginTop="16dp"/>
+
+            <ImageView
+                android:id="@+id/detail_crypto_image"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="16dp"
+                android:contentDescription="Cryptocurrency icon"/>
         </LinearLayout>
     </FrameLayout>
 
@@ -221,6 +168,18 @@
             android:padding="8dp">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/markets_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Markets"
+                android:textSize="14sp"
+                app:cornerRadius="20dp"
+                android:textColor="#A4A4A4"
+                app:backgroundTint="#F3F3F3"
+                android:layout_marginEnd="8dp"/>
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/trade_button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -228,9 +187,8 @@
                 android:text="Trade"
                 android:textSize="14sp"
                 app:cornerRadius="20dp"
-                android:textColor="#A4A4A4"
-                app:backgroundTint="#F3F3F3"
-                style="@style/Widget.MaterialComponents.Button"
+                android:textColor="#FFFFFF"
+                app:backgroundTint="#28422f"
                 android:layout_marginEnd="8dp"/>
 
             <com.google.android.material.button.MaterialButton
