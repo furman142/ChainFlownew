@@ -21,17 +21,17 @@ class AssetAdapter(
         private val cryptoWorth: TextView = itemView.findViewById(R.id.crypto_worth)
 
         fun bind(asset: Asset) {
-            // Load crypto icon
+            cryptoName.text = "${asset.cryptoName} (${asset.symbol})"
+            cryptoAmount.text = String.format("%.8f", asset.amount)
+            cryptoWorth.text = String.format("$%.2f", asset.worth)
+
+            // Load crypto icon with Glide
             Glide.with(itemView.context)
                 .load(asset.imageUrl)
-                .placeholder(R.drawable.bitcoin)
-                .error(R.drawable.bitcoin)
+                .placeholder(R.drawable.crypto_placeholder)
+                .error(R.drawable.crypto_placeholder)
+                .circleCrop()
                 .into(cryptoIcon)
-
-            // Set crypto details
-            cryptoName.text = asset.cryptoName
-            cryptoAmount.text = String.format("%.8f %s", asset.amount, asset.symbol)
-            cryptoWorth.text = String.format("$%.2f", asset.worth)
         }
     }
 

@@ -20,12 +20,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class HomeFragment : BaseFragment() {
+    // UI Components
     private lateinit var recyclerView: RecyclerView
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
-    private lateinit var adapter: CryptocardAdapter
-    private val cryptoList = mutableListOf<CryptoCoin>()
     private lateinit var coinTab: MaterialButton
     private lateinit var watchlistTab: MaterialButton
+    
+    private lateinit var adapter: CryptocardAdapter
+    private val cryptoList = mutableListOf<CryptoCoin>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,8 +36,9 @@ class HomeFragment : BaseFragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_home, container, false)
         
+        // Initialize views after inflating the layout
         initializeViews(view)
-        setupRecyclerView()
+        setupRecyclerView(view)
         setupTabListeners()
         loadCryptoData()
         
@@ -55,31 +58,32 @@ class HomeFragment : BaseFragment() {
 
     private fun setupTabListeners() {
         coinTab.setOnClickListener {
-            coinTab.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-            watchlistTab.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
-            adapter.showWatchlistOnly(false)
+            updateTabSelection(isWatchlistSelected = false)
         }
 
         watchlistTab.setOnClickListener {
-            watchlistTab.setTextColor(ContextCompat.getColor(requireContext(), R.color.black))
-            coinTab.setTextColor(ContextCompat.getColor(requireContext(), R.color.gray))
-            adapter.showWatchlistOnly(true)
+            updateTabSelection(isWatchlistSelected = true)
         }
     }
 
-    private fun setupRecyclerView() {
+    private fun updateTabSelection(isWatchlistSelected: Boolean) {
+        val context = requireContext()
+        coinTab.setTextColor(ContextCompat.getColor(context, 
+            if (!isWatchlistSelected) R.color.black else R.color.gray))
+        watchlistTab.setTextColor(ContextCompat.getColor(context, 
+            if (isWatchlistSelected) R.color.black else R.color.gray))
+        adapter.showWatchlistOnly(isWatchlistSelected)
+    }
+
+    private fun setupRecyclerView(view: View) {
         adapter = CryptocardAdapter(
             cryptoList,
             requireContext(),
             onWatchlistChanged = { position, isWatchlisted ->
                 cryptoList[position].watchlist = isWatchlisted
-                // If we're in watchlist view, refresh the list
-                if (watchlistTab.currentTextColor == ContextCompat.getColor(requireContext(), R.color.black)) {
-                    adapter.notifyDataSetChanged()
-                }
             },
             onCardClicked = { crypto ->
-                showBuyFragment(crypto)
+                navigateToBuyFragment(crypto)
             }
         )
         
@@ -87,40 +91,15 @@ class HomeFragment : BaseFragment() {
         recyclerView.adapter = adapter
     }
 
-    private fun loadCryptoData() {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val response = RetrofitClient.api.getLatestListings()
-                
-                withContext(Dispatchers.Main) {
-                    if (response.isSuccessful && response.body() != null) {
-                        val cryptoDataList = response.body()?.data ?: emptyList()
-                        
-                        cryptoList.clear()
-                        cryptoList.addAll(cryptoDataList.map { data ->
-                            CryptoCoin(
-                                cryptoName = data.name,
-                                cryptoValue = "$${String.format("%.2f", data.quote.USD.price)}",
-                                imageUrl = "https://s2.coinmarketcap.com/static/img/coins/64x64/${data.id}.png",
-                                watchlist = false,
-                                description = "${data.name} (${data.symbol})",
-                                rawPrice = data.quote.USD.price
-                            )
-                        })
-                        adapter.notifyDataSetChanged()
-                    }
-                    swipeRefreshLayout.isRefreshing = false
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_LONG).show()
-                    swipeRefreshLayout.isRefreshing = false
-                }
-            }
+    private fun handleWatchlistChange(position: Int, isWatchlisted: Boolean) {
+        cryptoList[position].watchlist = isWatchlisted
+        if (watchlistTab.currentTextColor == 
+            ContextCompat.getColor(requireContext(), R.color.black)) {
+            adapter.notifyDataSetChanged()
         }
     }
 
-    private fun showBuyFragment(crypto: CryptoCoin) {
+    private fun navigateToBuyFragment(crypto: CryptoCoin) {
         val buyFragment = BuyFragment().apply {
             arguments = Bundle().apply {
                 putString("cryptoName", crypto.cryptoName)
@@ -134,5 +113,49 @@ class HomeFragment : BaseFragment() {
             .replace(R.id.fragment_container, buyFragment)
             .addToBackStack(null)
             .commit()
+    }
+
+    private fun loadCryptoData() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = RetrofitClient.api.getLatestListings()
+                
+                withContext(Dispatchers.Main) {
+                    handleCryptoResponse(response)
+                }
+            } catch (e: Exception) {
+                handleError(e)
+            }
+        }
+    }
+
+    private suspend fun handleCryptoResponse(response: retrofit2.Response<com.example.chain_flow.api.CryptoListResponse>) {
+        if (response.isSuccessful && response.body() != null) {
+            val cryptoDataList = response.body()?.data ?: emptyList()
+            updateCryptoList(cryptoDataList)
+        }
+        swipeRefreshLayout.isRefreshing = false
+    }
+
+    private fun updateCryptoList(cryptoDataList: List<com.example.chain_flow.api.CryptoData>) {
+        cryptoList.clear()
+        cryptoList.addAll(cryptoDataList.map { data ->
+            CryptoCoin(
+                cryptoName = data.name,
+                cryptoValue = "$${String.format("%.2f", data.quote.USD.price)}",
+                imageUrl = "https://s2.coinmarketcap.com/static/img/coins/64x64/${data.id}.png",
+                watchlist = false,
+                description = "${data.name} (${data.symbol})",
+                rawPrice = data.quote.USD.price
+            )
+        })
+        adapter.notifyDataSetChanged()
+    }
+
+    private suspend fun handleError(e: Exception) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, "שגיאה: ${e.message}", Toast.LENGTH_LONG).show()
+            swipeRefreshLayout.isRefreshing = false
+        }
     }
 }

@@ -44,7 +44,6 @@ class LoginFragment : Fragment() {
         passwordInput.setBackgroundResource(R.drawable.input_background)
         loginButton.setBackgroundResource(R.drawable.button_background)
 
-        // Add text change listener for admin shortcut
         emailInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -63,39 +62,7 @@ class LoginFragment : Fragment() {
             val password = passwordInput.text.toString()
 
             if (email.isNotEmpty() && password.isNotEmpty()) {
-                mAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            val user = FirebaseAuth.getInstance().currentUser
-                            if (user != null) {
-                                val userData = mapOf("email" to user.email)
-                                db.collection("users").document(user.uid)
-                                    .set(userData)
-                                    .addOnSuccessListener {
-                                        Log.d(TAG, "DocumentSnapshot successfully written!")
-                                    }
-                                    .addOnFailureListener { e ->
-                                        Log.w(TAG, "Error writing document", e)
-                                    }
-                            } else {
-                                Log.w(TAG, "User is not authenticated!")
-                            }
-
-
-
-
-
-
-
-
-                            parentFragmentManager.beginTransaction()
-                                .replace(R.id.fragment_container, HomeFragment())
-                                .commit()
-                        } else {
-                            Toast.makeText(context, "Login failed: ${task.exception?.message}",
-                                Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                handleLogin(email, password)
             } else {
                 Toast.makeText(context, "Please enter email and password",
                     Toast.LENGTH_SHORT).show()
@@ -109,5 +76,54 @@ class LoginFragment : Fragment() {
         }
 
         return view
+    }
+
+    private fun handleLogin(email: String, password: String) {
+        mAuth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = task.result?.user
+                    if (user != null) {
+                        // Check if user has balance data
+                        db.collection("users").document(user.uid)
+                            .get()
+                            .addOnSuccessListener { document ->
+                                if (!document.exists() || document.getDouble("balance") == null) {
+                                    // Initialize user data if it doesn't exist
+                                    val userData = hashMapOf(
+                                        "email" to email,
+                                        "balance" to 1000000000.0,  // 1B USD starting balance
+                                        "createdAt" to com.google.firebase.Timestamp.now()
+                                    )
+                                    
+                                    db.collection("users").document(user.uid)
+                                        .set(userData)
+                                        .addOnSuccessListener {
+                                            navigateToPortfolio()
+                                        }
+                                        .addOnFailureListener { e ->
+                                            Toast.makeText(context, "Error initializing user data: ${e.message}", 
+                                                Toast.LENGTH_SHORT).show()
+                                        }
+                                } else {
+                                    navigateToPortfolio()
+                                }
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(context, "Error checking user data: ${e.message}", 
+                                    Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                } else {
+                    Toast.makeText(context, "Login failed: ${task.exception?.message}", 
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    private fun navigateToPortfolio() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, PortfolioFragment())
+            .commit()
     }
 }

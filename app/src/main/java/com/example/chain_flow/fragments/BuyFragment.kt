@@ -85,179 +85,191 @@ class BuyFragment : BaseFragment() {
     }
 
     private fun handleBuyAction() {
-        val amount = amountInput.text.toString().toDoubleOrNull() ?: 0.0
-
-        // Validate amount
-        if (amount < 10.0 || amount > 30000.0) {
-            Toast.makeText(requireContext(), "Amount must be between $10 and $30,000", Toast.LENGTH_SHORT).show()
+        val amount = amountInput.text.toString().toDoubleOrNull() ?: run {
+            showToast("נא להזין סכום תקין")
             return
         }
 
-        // Get current user
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user == null) {
-            Toast.makeText(requireContext(), "Please login first", Toast.LENGTH_SHORT).show()
+        val user = FirebaseAuth.getInstance().currentUser ?: run {
+            showToast("יש להתחבר תחילה")
             return
         }
 
-        // Check user's balance first
-        db.collection("users").document(user.uid).get()
+        // Check if user exists and has balance
+        db.collection("users").document(user.uid)
+            .get()
             .addOnSuccessListener { document ->
-                val currentBalance = document.getDouble("balance") ?: 10000.0
-
-                if (amount > currentBalance) {
-                    Toast.makeText(requireContext(), "Insufficient balance", Toast.LENGTH_SHORT).show()
-                    return@addOnSuccessListener
-                }
-
-                // Show loading toast
-                Toast.makeText(requireContext(), "Processing purchase...", Toast.LENGTH_SHORT).show()
-
-                // Calculate crypto amount
-                val cryptoAmount = amount / rawPrice
-                val cryptoName = cryptoName.text.toString()
-
-                // Reference to user's wallet collection
-                val walletRef = db.collection("users")
-                    .document(user.uid)
-                    .collection("Wallet")
-
-                // Check if user already owns this crypto
-                walletRef.whereEqualTo("cryptoName", cryptoName)
-                    .get()
-                    .addOnSuccessListener { querySnapshot ->
-                        if (!querySnapshot.isEmpty) {
-                            // User already owns this crypto - update existing document
-                            val existingDoc = querySnapshot.documents[0]
-                            val existingAmount = existingDoc.getDouble("amount") ?: 0.0
-                            val existingWorth = existingDoc.getDouble("worth") ?: 0.0
-                            
-                            // Calculate new average buy price
-                            val totalWorth = existingWorth + amount
-                            val totalAmount = existingAmount + cryptoAmount
-                            val newAverageBuyPrice = totalWorth / totalAmount
-
-                            val updates = hashMapOf<String, Any>(
-                                "amount" to totalAmount,
-                                "worth" to totalWorth,
-                                "buyPrice" to newAverageBuyPrice,
-                                "timestamp" to com.google.firebase.Timestamp.now()
-                            )
-
-                            existingDoc.reference.update(updates)
-                                .addOnSuccessListener {
-                                    updateBalanceAndFinish(user.uid, currentBalance, amount)
-                                }
-                                .addOnFailureListener { e ->
-                                    Toast.makeText(requireContext(), "Failed to update: ${e.message}", 
-                                        Toast.LENGTH_LONG).show()
-                                }
-                        } else {
-                            // User doesn't own this crypto - create new document
-                            val newWalletData = hashMapOf(
-                                "amount" to cryptoAmount,
-                                "worth" to amount,
-                                "buyPrice" to rawPrice,
-                                "timestamp" to com.google.firebase.Timestamp.now(),
-                                "cryptoName" to cryptoName
-                            )
-
-                            walletRef.add(newWalletData)
-                                .addOnSuccessListener {
-                                    updateBalanceAndFinish(user.uid, currentBalance, amount)
-                                }
-                                .addOnFailureListener { e ->
-                                    Toast.makeText(requireContext(), "Transaction failed: ${e.message}", 
-                                        Toast.LENGTH_LONG).show()
-                                }
+                if (!document.exists()) {
+                    // Create new user with initial balance if doesn't exist
+                    val userData = hashMapOf(
+                        "email" to user.email,
+                        "balance" to 1000000000.0,
+                        "createdAt" to com.google.firebase.Timestamp.now()
+                    )
+                    
+                    db.collection("users").document(user.uid)
+                        .set(userData)
+                        .addOnSuccessListener {
+                            processPurchase(user.uid, amount, 1000000000.0)
                         }
+                        .addOnFailureListener { e ->
+                            showToast("שגיאה ביצירת משתמש: ${e.message}")
+                        }
+                } else {
+                    val currentBalance = document.getDouble("balance") ?: 1000000000.0
+                    if (currentBalance < amount) {
+                        showToast("אין מספיק יתרה בחשבון")
+                        return@addOnSuccessListener
                     }
-                    .addOnFailureListener { e ->
-                        Toast.makeText(requireContext(), "Failed to check existing assets: ${e.message}", 
-                            Toast.LENGTH_LONG).show()
-                    }
+                    processPurchase(user.uid, amount, currentBalance)
+                }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to check balance: ${e.message}", 
-                    Toast.LENGTH_LONG).show()
+                showToast("שגיאה בבדיקת היתרה: ${e.message}")
             }
+    }
+
+    private fun showToast(message: String) {
+        if (isAdded) {
+            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun handleSellAction() {
-        val amount = amountInput.text.toString().toDoubleOrNull() ?: 0.0
-        val user = FirebaseAuth.getInstance().currentUser ?: return
+        val amount = amountInput.text.toString().toDoubleOrNull() ?: run {
+            showToast("Please enter a valid amount")
+            return
+        }
 
-        // Get user's wallet to check if they have enough crypto to sell
-        db.collection("users").document(user.uid)
-            .collection("Wallet")
-            .whereEqualTo("cryptoName", cryptoName.text.toString())
+        val user = FirebaseAuth.getInstance().currentUser ?: run {
+            showToast("Please login first")
+            return
+        }
+
+        val cryptoToSell = amount / rawPrice
+        val cryptoName = cryptoName.text.toString()
+
+        // First get the wallet data
+        db.collection("users")
+            .document(user.uid)
+            .collection("wallet")
+            .whereEqualTo("cryptoName", cryptoName)
             .get()
-            .addOnSuccessListener { documents ->
-                if (documents.isEmpty) {
-                    Toast.makeText(context, "You don't own this cryptocurrency", Toast.LENGTH_SHORT).show()
+            .addOnSuccessListener { walletSnapshot ->
+                if (walletSnapshot.isEmpty) {
+                    showToast("You don't own this cryptocurrency")
                     return@addOnSuccessListener
                 }
 
-                val asset = documents.documents[0]
-                val currentAmount = asset.getDouble("amount") ?: 0.0
-                val cryptoToSell = amount / rawPrice
-
-                if (cryptoToSell > currentAmount) {
-                    Toast.makeText(context, "Insufficient crypto balance", Toast.LENGTH_SHORT).show()
-                    return@addOnSuccessListener
-                }
-
-                // Calculate new amount and worth
-                val newAmount = currentAmount - cryptoToSell
-                val currentWorth = asset.getDouble("worth") ?: 0.0
-                val soldWorth = (currentWorth / currentAmount) * cryptoToSell
-                val newWorth = currentWorth - soldWorth
-
-                if (newAmount <= 0) {
-                    // Delete the asset if selling all
-                    asset.reference.delete()
-                } else {
-                    // Update the asset with new amounts
-                    asset.reference.update(
-                        mapOf(
-                            "amount" to newAmount,
-                            "worth" to newWorth
-                        )
-                    )
-                }
-
-                // Update user's balance
-                db.collection("users").document(user.uid)
-                    .get()
-                    .addOnSuccessListener { userDoc ->
-                        val currentBalance = userDoc.getDouble("balance") ?: 0.0
-                        val newBalance = currentBalance + amount
-
-                        userDoc.reference.update("balance", newBalance)
-                            .addOnSuccessListener {
-                                Toast.makeText(context, "Sale successful!", Toast.LENGTH_SHORT).show()
-                                parentFragmentManager.popBackStack()
-                            }
+                // Start transaction after we have the wallet data
+                db.runTransaction { transaction ->
+                    val asset = walletSnapshot.documents[0]
+                    val currentAmount = asset.getDouble("amount") ?: 0.0
+                    
+                    if (currentAmount < cryptoToSell) {
+                        throw Exception("Insufficient crypto balance")
                     }
+
+                    val newAmount = currentAmount - cryptoToSell
+                    val currentWorth = asset.getDouble("worth") ?: 0.0
+                    val soldWorth = (currentWorth / currentAmount) * cryptoToSell
+                    val newWorth = currentWorth - soldWorth
+
+                    // Get user's current balance
+                    val userRef = db.collection("users").document(user.uid)
+                    val userDoc = transaction.get(userRef)
+                    val currentBalance = userDoc.getDouble("balance") ?: 0.0
+
+                    if (newAmount <= 0) {
+                        // Delete the asset if selling all
+                        transaction.delete(asset.reference)
+                    } else {
+                        // Update the asset with new amounts
+                        transaction.update(asset.reference, mapOf(
+                            "amount" to newAmount,
+                            "worth" to newWorth,
+                            "timestamp" to com.google.firebase.Timestamp.now()
+                        ))
+                    }
+
+                    // Update user's balance
+                    transaction.update(userRef, "balance", currentBalance + amount)
+                }.addOnSuccessListener {
+                    showToast("Sale successful!")
+                    parentFragmentManager.popBackStack()
+                }.addOnFailureListener { e ->
+                    showToast("Sale failed: ${e.message}")
+                }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                showToast("Failed to check wallet: ${e.message}")
             }
     }
 
-    private fun updateBalanceAndFinish(userId: String, currentBalance: Double, amount: Double) {
-        // Update user's balance
-        val newBalance = currentBalance - amount
-        db.collection("users").document(userId)
-            .update("balance", newBalance)
-            .addOnSuccessListener {
-                Toast.makeText(requireContext(), "Purchase successful!", Toast.LENGTH_LONG).show()
-                // Navigate back
-                parentFragmentManager.popBackStack()
+    private fun processPurchase(userId: String, amount: Double, currentBalance: Double) {
+        val cryptoAmount = amount / rawPrice
+        val cryptoName = cryptoName.text.toString()
+
+        // Get user's wallet reference
+        db.collection("users")
+            .document(userId)
+            .collection("wallet")
+            .whereEqualTo("cryptoName", cryptoName)
+            .get()
+            .addOnSuccessListener { walletSnapshot ->
+                // Start transaction after we have the wallet data
+                db.runTransaction { transaction ->
+                    // Get fresh user data
+                    val userRef = db.collection("users").document(userId)
+                    val userDoc = transaction.get(userRef)
+                    val updatedBalance = userDoc.getDouble("balance") ?: currentBalance
+
+                    if (updatedBalance < amount) {
+                        throw Exception("אין מספיק יתרה בחשבון")
+                    }
+
+                    if (!walletSnapshot.isEmpty) {
+                        // Update existing crypto
+                        val existingAsset = walletSnapshot.documents[0]
+                        val currentAmount = existingAsset.getDouble("amount") ?: 0.0
+                        
+                        val newAmount = currentAmount + cryptoAmount
+                        val newWorth = newAmount * rawPrice
+
+                        transaction.update(existingAsset.reference, mapOf(
+                            "amount" to newAmount,
+                            "worth" to newWorth,
+                            "timestamp" to com.google.firebase.Timestamp.now()
+                        ))
+                    } else {
+                        // Create new crypto asset
+                        val newAssetRef = db.collection("users")
+                            .document(userId)
+                            .collection("wallet")
+                            .document()
+
+                        val assetData = hashMapOf(
+                            "cryptoName" to cryptoName,
+                            "amount" to cryptoAmount,
+                            "worth" to amount,
+                            "buyPrice" to rawPrice,
+                            "timestamp" to com.google.firebase.Timestamp.now()
+                        )
+                        
+                        transaction.set(newAssetRef, assetData)
+                    }
+
+                    // Update user's balance
+                    transaction.update(userRef, "balance", updatedBalance - amount)
+                }.addOnSuccessListener {
+                    showToast("הרכישה בוצעה בהצלחה!")
+                    parentFragmentManager.popBackStack()
+                }.addOnFailureListener { e ->
+                    showToast("שגיאה ברכישה: ${e.message}")
+                }
             }
             .addOnFailureListener { e ->
-                Toast.makeText(requireContext(), "Failed to update balance: ${e.message}", 
-                    Toast.LENGTH_LONG).show()
+                showToast("שגיאה בבדיקת הארנק: ${e.message}")
             }
     }
 

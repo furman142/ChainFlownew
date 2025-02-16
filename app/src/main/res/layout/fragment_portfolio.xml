@@ -71,6 +71,12 @@
                 android:textSize="16sp"
                 android:textColor="@color/purple_500"
                 android:layout_marginTop="4dp"/>
+
+            <Button
+                android:id="@+id/transfer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/transfer" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

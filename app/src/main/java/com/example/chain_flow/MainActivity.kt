@@ -10,7 +10,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Start with SignupFragment
         if (savedInstanceState == null) {
             loadFragment(SignupFragment())
         }

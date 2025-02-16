@@ -11,9 +11,13 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.chain_flow.R
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 class SignupFragment : Fragment() {
     private lateinit var mAuth: FirebaseAuth
+    private val db = Firebase.firestore
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,20 +40,7 @@ class SignupFragment : Fragment() {
             val confirmPassword = confirmPasswordInput.text.toString()
             
             if (validateInputs(email, password, confirmPassword)) {
-                mAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-                            // Switch to login fragment after successful signup
-                            parentFragmentManager.beginTransaction()
-                                .replace(R.id.fragment_container, LoginFragment())
-                                .commit()
-                            Toast.makeText(context, "Signup successful! Please login.", 
-                                Toast.LENGTH_SHORT).show()
-                        } else {
-                            Toast.makeText(context, "Signup failed: ${task.exception?.message}", 
-                                Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                createUserAccount(email, password)
             }
         }
         
@@ -79,5 +70,40 @@ class SignupFragment : Fragment() {
         }
         
         return true
+    }
+
+    private fun createUserAccount(email: String, password: String) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val user = task.result?.user
+                    if (user != null) {
+                        // Initialize user data with 1B USD
+                        val userData = hashMapOf(
+                            "email" to email,
+                            "balance" to 1000000000.0,  // 1B USD starting balance
+                            "createdAt" to com.google.firebase.Timestamp.now()
+                        )
+                        
+                        db.collection("users").document(user.uid)
+                            .set(userData)
+                            .addOnSuccessListener {
+                                // Switch to login fragment after successful signup
+                                parentFragmentManager.beginTransaction()
+                                    .replace(R.id.fragment_container, LoginFragment())
+                                    .commit()
+                                Toast.makeText(context, "Signup successful! Please login.", 
+                                    Toast.LENGTH_SHORT).show()
+                            }
+                            .addOnFailureListener { e ->
+                                Toast.makeText(context, "Error initializing user data: ${e.message}", 
+                                    Toast.LENGTH_SHORT).show()
+                            }
+                    }
+                } else {
+                    Toast.makeText(context, "Signup failed: ${task.exception?.message}", 
+                        Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 } 

@@ -37,7 +37,7 @@ android {
     buildFeatures {
         compose = true
     }
-    
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
     }
@@ -48,6 +48,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation(libs.androidx.core.ktx)
     implementation("com.google.firebase:firebase-firestore:24.7.1")
+    implementation 'com.google.android.gms:play-services:17.0.0'
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
